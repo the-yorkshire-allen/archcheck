@@ -27,10 +27,9 @@ type ReferenceArchitectures []struct {
 			To    string `json:"to,omitempty"`
 		} `json:"tests"`
 	} `json:"validation"`
-	Installation string `json:"installation,omitempty"`
 }
 
-func readConfig() {
+func readConfig() ReferenceArchitectures {
 	// read config file
 	file, err := os.ReadFile(configfile)
 	if err != nil {
@@ -46,29 +45,50 @@ func readConfig() {
 		os.Exit(1)
 	}
 
+	return data
 }
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "usage: peportcheck [port number] [port number n]\n")
+	fmt.Fprintf(os.Stderr, "usage: archcheck\n")
 	flag.PrintDefaults()
 	os.Exit(2)
 }
 
 func main() {
-	readConfig()
+	config := readConfig()
 
 	flag.Usage = usage
 	flag.Parse()
 
-	args := flag.Args()
-	if len(args) < 1 {
-		fmt.Fprintf(os.Stderr, "Input ports are missing.")
-		os.Exit(1)
+	var host_ports = make(map[string]int, 0)
+
+	fmt.Println("Available Architectures:")
+	for _, arch := range config {
+		fmt.Println(" - " + arch.Architecture)
+		// get all inbound ports from all servers and architectures
+		for _, server := range arch.Servers {
+			for _, port := range server.InboundPorts {
+				if host_ports[strconv.Itoa(port)] != port {
+					host_ports[strconv.Itoa(port)] = port
+				}
+			}
+		}
+	}
+	fmt.Println("Host Ports: ", host_ports)
+
+	for port := range host_ports {
+		go checkPort(port)
 	}
 
-	for port := range args {
-		go checkPort(args[port])
-	}
+	// args := flag.Args()
+	// if len(args) < 1 {
+	// 	fmt.Fprintf(os.Stderr, "Input ports are missing.")
+	// 	os.Exit(1)
+	// }
+
+	// for port := range args {
+	// 	go checkPort(args[port])
+	// }
 
 	for {
 		time.Sleep(1000)

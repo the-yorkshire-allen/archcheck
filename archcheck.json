@@ -414,7 +414,7 @@
         ]
     },
     {
-        "installation": "extra-large",
+        "architecture": "extra-large",
         "servers": [
             {
                 "type": "primary",
