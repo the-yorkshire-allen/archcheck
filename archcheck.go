@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const configfile string = "peportcheck.json"
+const configfile string = "archcheck.json"
 
 type ReferenceArchitectures []struct {
 	Architecture string `json:"architecture,omitempty"`
