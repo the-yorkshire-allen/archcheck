@@ -1,0 +1,714 @@
+[
+    {
+        "architecture": "standard",
+        "servers": [
+            {
+                "type": "primary",
+                "inbound ports": [
+                    443,
+                    4433,
+                    5432,
+                    8081,
+                    8140,
+                    8142,
+                    8143,
+                    8170
+                ],
+                "outbound ports": [
+                    4433,
+                    5432,
+                    8081,
+                    8140,
+                    8142,
+                    8143
+                ]
+            },
+            {
+                "type": "replica",
+                "inbound ports": [
+                    443,
+                    4433,
+                    5432,
+                    8081,
+                    8140,
+                    8142,
+                    8143,
+                    8170
+                ],
+                "outbound ports": [
+                    4433,
+                    5432,
+                    8081,
+                    8140,
+                    8142,
+                    8143
+                ]
+            },
+            {
+                "type": "agent",
+                "inbound ports": [],
+                "outbound ports": [
+                    8140,
+                    8142
+                ]
+            }
+        ],
+        "validation": [
+            {
+                "type": "primary",
+                "tests": [
+                    {
+                        "from": "agent",
+                        "ports": [
+                            8140,
+                            8142
+                        ]
+                    },
+                    {
+                        "from": "replica",
+                        "ports": [
+                            4433,
+                            5423,
+                            8081,
+                            8140,
+                            8142
+                        ]
+                    },
+                    {
+                        "to": "replica",
+                        "ports": [
+                            4433,
+                            5423,
+                            8081,
+                            8140,
+                            8142,
+                            8143
+                        ]
+                    },
+                    {
+                        "from": "any",
+                        "ports": [
+                            8170
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "replica",
+                "tests": [
+                    {
+                        "from": "agent",
+                        "ports": [
+                            8140,
+                            8142
+                        ]
+                    },
+                    {
+                        "to": "primary",
+                        "ports": [
+                            4433,
+                            5423,
+                            8081,
+                            8140,
+                            8142
+                        ]
+                    },
+                    {
+                        "from": "primary",
+                        "ports": [
+                            4433,
+                            5423,
+                            8081,
+                            8140,
+                            8142,
+                            8143
+                        ]
+                    },
+                    {
+                        "from": "any",
+                        "ports": [
+                            8170
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "agent",
+                "tests": [
+                    {
+                        "to": "primary",
+                        "ports": [
+                            8140,
+                            8142
+                        ]
+                    },
+                    {
+                        "to": "replica",
+                        "ports": [
+                            8140,
+                            8142
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "architecture": "large",
+        "servers": [
+            {
+                "type": "primary",
+                "inbound ports": [
+                    443,
+                    4433,
+                    5432,
+                    8081,
+                    8140,
+                    8142,
+                    8143,
+                    8170
+                ],
+                "outbound ports": [
+                    4433,
+                    5432,
+                    8081,
+                    8140,
+                    8142,
+                    8143
+                ]
+            },
+            {
+                "type": "compiler",
+                "inbound ports": [
+                    8081,
+                    8140,
+                    8142
+                ],
+                "outbound ports": [
+                    4433,
+                    5432,
+                    8081,
+                    8140,
+                    8142,
+                    8143
+                ]
+            },
+            {
+                "type": "replica",
+                "inbound ports": [
+                    443,
+                    4433,
+                    5432,
+                    8081,
+                    8140,
+                    8142,
+                    8143,
+                    8170
+                ],
+                "outbound ports": [
+                    4433,
+                    5432,
+                    8081,
+                    8140,
+                    8142,
+                    8143
+                ]
+            },
+            {
+                "type": "agent",
+                "inbound ports": [],
+                "outbound ports": [
+                    8140,
+                    8142
+                ]
+            }
+        ],
+        "validation": [
+            {
+                "type": "primary",
+                "tests": [
+                    {
+                        "from": "agent",
+                        "ports": [
+                            8140,
+                            8142
+                        ]
+                    },
+                    {
+                        "from": "replica",
+                        "ports": [
+                            4433,
+                            5423,
+                            8081,
+                            8140,
+                            8142
+                        ]
+                    },
+                    {
+                        "to": "replica",
+                        "ports": [
+                            4433,
+                            5423,
+                            8081,
+                            8140,
+                            8142,
+                            8143
+                        ]
+                    },
+                    {
+                        "from": "compiler",
+                        "ports": [
+                            4433,
+                            5423,
+                            8081,
+                            8140,
+                            8142,
+                            8143
+                        ]
+                    },
+                    {
+                        "to": "compiler",
+                        "ports": [
+                            8081,
+                            8140
+                        ]
+                    },
+                    {
+                        "from": "any",
+                        "ports": [
+                            8170
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "replica",
+                "tests": [
+                    {
+                        "from": "agent",
+                        "ports": [
+                            8140,
+                            8142
+                        ]
+                    },
+                    {
+                        "to": "primary",
+                        "ports": [
+                            4433,
+                            5423,
+                            8081,
+                            8140,
+                            8142
+                        ]
+                    },
+                    {
+                        "from": "primary",
+                        "ports": [
+                            4433,
+                            5423,
+                            8081,
+                            8140,
+                            8142,
+                            8143
+                        ]
+                    },
+                    {
+                        "from": "compiler",
+                        "ports": [
+                            4433,
+                            5423,
+                            8081,
+                            8140,
+                            8142,
+                            8143
+                        ]
+                    },
+                    {
+                        "to": "compiler",
+                        "ports": [
+                            8081,
+                            8140
+                        ]
+                    },
+                    {
+                        "from": "any",
+                        "ports": [
+                            8170
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "compiler",
+                "tests": [
+                    {
+                        "from": "agent",
+                        "ports": [
+                            8140,
+                            8142
+                        ]
+                    },
+                    {
+                        "to": "primary",
+                        "ports": [
+                            4433,
+                            5423,
+                            8081,
+                            8140,
+                            8142,
+                            8143
+                        ]
+                    },
+                    {
+                        "from": "primary",
+                        "ports": [
+                            8081,
+                            8140
+                        ]
+                    },
+                    {
+                        "to": "replica",
+                        "ports": [
+                            4433,
+                            5423,
+                            8081,
+                            8140,
+                            8142,
+                            8143
+                        ]
+                    },
+                    {
+                        "from": "replica",
+                        "ports": [
+                            8081,
+                            8140
+                        ]
+                    },
+                    {
+                        "from": "any",
+                        "ports": [
+                            8170
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "agent",
+                "tests": [
+                    {
+                        "to": "primary",
+                        "ports": [
+                            8140,
+                            8142
+                        ]
+                    },
+                    {
+                        "to": "replica",
+                        "ports": [
+                            8140,
+                            8142
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "installation": "extra-large",
+        "servers": [
+            {
+                "type": "primary",
+                "inbound ports": [
+                    443,
+                    4433,
+                    5432,
+                    8081,
+                    8140,
+                    8142,
+                    8143,
+                    8170
+                ],
+                "outbound ports": [
+                    4433,
+                    5432,
+                    8081,
+                    8140,
+                    8142,
+                    8143
+                ]
+            },
+            {
+                "type": "compiler",
+                "inbound ports": [
+                    8081,
+                    8140,
+                    8142
+                ],
+                "outbound ports": [
+                    4433,
+                    5432,
+                    8081,
+                    8140,
+                    8142,
+                    8143
+                ]
+            },
+            {
+                "type": "replica",
+                "inbound ports": [
+                    443,
+                    4433,
+                    5432,
+                    8081,
+                    8140,
+                    8142,
+                    8143,
+                    8170
+                ],
+                "outbound ports": [
+                    4433,
+                    5432,
+                    8081,
+                    8140,
+                    8142,
+                    8143
+                ]
+            },
+            {
+                "type": "postgres",
+                "inbound ports": [
+                    5432
+                ],
+                "outbound ports": []
+            },
+            {
+                "type": "agent",
+                "inbound ports": [],
+                "outbound ports": [
+                    8140,
+                    8142
+                ]
+            }
+        ],
+        "validation": [
+            {
+                "type": "primary",
+                "tests": [
+                    {
+                        "from": "agent",
+                        "ports": [
+                            8140,
+                            8142
+                        ]
+                    },
+                    {
+                        "from": "replica",
+                        "ports": [
+                            4433,
+                            5423,
+                            8081,
+                            8140,
+                            8142
+                        ]
+                    },
+                    {
+                        "to": "replica",
+                        "ports": [
+                            4433,
+                            5423,
+                            8081,
+                            8140,
+                            8142,
+                            8143
+                        ]
+                    },
+                    {
+                        "from": "compiler",
+                        "ports": [
+                            4433,
+                            8081,
+                            8140,
+                            8142,
+                            8143
+                        ]
+                    },
+                    {
+                        "to": "compiler",
+                        "ports": [
+                            8081,
+                            8140
+                        ]
+                    },
+                    {
+                        "to": "postgres",
+                        "ports": [
+                            5432
+                        ]
+                    },
+                    {
+                        "from": "any",
+                        "ports": [
+                            8170
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "replica",
+                "tests": [
+                    {
+                        "from": "agent",
+                        "ports": [
+                            8140,
+                            8142
+                        ]
+                    },
+                    {
+                        "to": "primary",
+                        "ports": [
+                            4433,
+                            5423,
+                            8081,
+                            8140,
+                            8142
+                        ]
+                    },
+                    {
+                        "from": "primary",
+                        "ports": [
+                            4433,
+                            5423,
+                            8081,
+                            8140,
+                            8142,
+                            8143
+                        ]
+                    },
+                    {
+                        "from": "compiler",
+                        "ports": [
+                            4433,
+                            8081,
+                            8140,
+                            8142,
+                            8143
+                        ]
+                    },
+                    {
+                        "to": "compiler",
+                        "ports": [
+                            8081,
+                            8140
+                        ]
+                    },
+                    {
+                        "to": "postgres",
+                        "ports": [
+                            5432
+                        ]
+                    },
+                    {
+                        "from": "any",
+                        "ports": [
+                            8170
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "compiler",
+                "tests": [
+                    {
+                        "from": "agent",
+                        "ports": [
+                            8140,
+                            8142
+                        ]
+                    },
+                    {
+                        "to": "primary",
+                        "ports": [
+                            4433,
+                            8081,
+                            8140,
+                            8142,
+                            8143
+                        ]
+                    },
+                    {
+                        "from": "primary",
+                        "ports": [
+                            8081,
+                            8140
+                        ]
+                    },
+                    {
+                        "to": "replica",
+                        "ports": [
+                            4433,
+                            8081,
+                            8140,
+                            8142,
+                            8143
+                        ]
+                    },
+                    {
+                        "from": "replica",
+                        "ports": [
+                            8081,
+                            8140
+                        ]
+                    },
+                    {
+                        "from": "any",
+                        "ports": [
+                            8170
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "postgres",
+                "tests": [
+                    {
+                        "from": "primary",
+                        "ports": [
+                            5432
+                        ]
+                    },
+                    {
+                        "from": "replica",
+                        "ports": [
+                            5432
+                        ]
+                    },
+                    {
+                        "from": "compiler",
+                        "ports": [
+                            5432
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "agent",
+                "tests": [
+                    {
+                        "to": "primary",
+                        "ports": [
+                            8140,
+                            8142
+                        ]
+                    },
+                    {
+                        "to": "replica",
+                        "ports": [
+                            8140,
+                            8142
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]
