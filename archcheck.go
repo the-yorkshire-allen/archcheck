@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"html"
 	"net"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -76,8 +78,10 @@ func main() {
 	}
 	fmt.Println("Host Ports: ", host_ports)
 
+	http.HandleFunc("/", notify)
 	for port := range host_ports {
-		go checkPort(port)
+		// go checkPort(port)
+		go servePort(port)
 	}
 
 	// args := flag.Args()
@@ -95,6 +99,21 @@ func main() {
 	}
 }
 
+func servePort(port string) {
+	_, err := strconv.ParseUint(port, 10, 16)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Invalid port %q: %s", port, err)
+		return
+	}
+
+	err = http.ListenAndServe(":"+port, nil)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Can't listen on port %q: %s", port, err)
+		return
+	}
+	fmt.Printf("Listening on Port %q\n", port)
+}
+
 func checkPort(port string) {
 	_, err := strconv.ParseUint(port, 10, 16)
 	if err != nil {
@@ -109,7 +128,7 @@ func checkPort(port string) {
 		return
 	}
 
-	fmt.Printf("TCP Port %q is available\n", port)
+	fmt.Printf("Port %q is available\n", port)
 
 	for {
 		conn, err := ln.Accept()
@@ -137,5 +156,13 @@ func handleConnection(conn net.Conn) {
 
 		// Process and use the data (here, we'll just print it)
 		fmt.Printf("Received: %s\n", buffer[:n])
+		t := time.Now()
+		myTime := t.Format(time.RFC3339) + "\n"
+		conn.Write([]byte(myTime))
 	}
+}
+
+func notify(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("Connection accepted from %s\n", r.Host)
+	fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
 }
