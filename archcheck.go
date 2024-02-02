@@ -15,6 +15,7 @@ import (
 const ConfigFile string = "archcheck.json"
 
 var NodeGroups NodeGroup
+var Nodes []Node
 
 type NodeGroup struct {
 	Nodes []Node
@@ -99,6 +100,7 @@ func main() {
 
 	http.HandleFunc("/", userInterface)
 	http.HandleFunc("/register", register)
+	http.HandleFunc("/data/NodeData.json", NodeGroupsToJSON)
 	http.Handle("/graphs/", http.StripPrefix("/graphs/", http.FileServer(http.Dir("./graphs"))))
 
 	for port := range host_ports {
@@ -194,14 +196,14 @@ func register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	NodeGroups.addNode(myNode)
-	fmt.Println("Node Group ", NodeGroups)
+	Nodes = append(Nodes, myNode)
+	fmt.Println("Node Group ", Nodes)
 	fmt.Fprintf(w, "OK")
 }
 
-func (nodeGroup *NodeGroup) addNode(node Node) {
-	nodeGroup.Nodes = append(nodeGroup.Nodes, node)
-}
+// func (nodeGroup *NodeGroup) addNode(node Node) {
+// 	nodeGroup.Nodes = append(nodeGroup.Nodes, node)
+// }
 
 func loadPage(page string) ([]byte, error) {
 	filename := "html/" + page + ".html"
@@ -210,4 +212,15 @@ func loadPage(page string) ([]byte, error) {
 		return nil, err
 	}
 	return body, nil
+}
+
+func NodeGroupsToJSON(w http.ResponseWriter, r *http.Request) {
+	json, err := json.Marshal(Nodes)
+	if err != nil {
+		fmt.Println("Unable to marshal JSON when registering node Error:", err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Println("Node Groups JSON: ", string(json))
+	fmt.Fprintf(w, "%s", string(json))
 }
