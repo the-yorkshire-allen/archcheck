@@ -15,15 +15,31 @@ import (
 const ConfigFile string = "archcheck.json"
 
 var NodeGroups NodeGroup
+var NodePorts NodePortGroup
 var Nodes []Node
 
 type NodeGroup struct {
 	Nodes []Node
 }
+type NodePortGroup struct {
+	Ports []NodePort `json:"Ports,omitempty"`
+}
+
+type NodePort struct {
+	Port    int  `json:"port"`
+	Success bool `json:"success"`
+}
 
 type Node struct {
-	Hostname string `json:"hostname"`
-	IP       string `json:"ip"`
+	Hostname    string     `json:"hostname"`
+	IP          string     `json:"ip"`
+	Ports       []NodePort `json:"Ports,omitempty"`
+	Connections []struct {
+		ToHostname  string `json:"to hostname"`
+		ToIPAddress string `json:"to ip"`
+		Port        int    `json:"port"`
+		Success     bool   `json:"success"`
+	} `json:"Connections,omitempty"`
 }
 
 type ReferenceArchitectures []struct {
@@ -81,6 +97,7 @@ func main() {
 	}
 
 	go registerNode(args[0])
+	go updateStatus(args[0])
 
 	var host_ports = make(map[string]int, 0)
 
@@ -100,11 +117,13 @@ func main() {
 
 	http.HandleFunc("/", userInterface)
 	http.HandleFunc("/register", register)
+	http.HandleFunc("/updateStatus", receiveStatus)
 	http.HandleFunc("/data/NodeData.json", NodeGroupsToJSON)
 	http.Handle("/graphs/", http.StripPrefix("/graphs/", http.FileServer(http.Dir("./graphs"))))
 
 	for port := range host_ports {
 		// go checkPort(port)
+		fmt.Println("Checking Port: ", port)
 		go servePort(port)
 	}
 
@@ -140,7 +159,10 @@ func registerNode(target string) {
 		fmt.Println("Unable to get hostname when registering node Error:", err)
 		return
 	}
-	myNode := Node{hostname, GetLocalIP()}
+	myNode := Node{
+		Hostname: hostname,
+		IP:       GetLocalIP(),
+	}
 	nodeJSON, err := json.Marshal(myNode)
 	if err != nil {
 		fmt.Println("Unable to marshal JSON when registering node Error:", err)
@@ -159,19 +181,64 @@ func registerNode(target string) {
 	}
 }
 
+func updateStatus(target string) {
+	for {
+		nodeJSON, err := json.Marshal(NodePorts)
+		if err != nil {
+			fmt.Println("Unable to marshal JSON when updating status node Error:", err)
+			return
+		}
+
+		fmt.Println("Node Ports: ", bytes.NewBuffer(nodeJSON))
+
+		//send request to target
+		for {
+			_, err := http.Post("http://"+target+":443/updateStatus", "application/json", bytes.NewBuffer(nodeJSON))
+			if err != nil {
+				fmt.Println("Unable to connect to target Error:", err)
+				time.Sleep(3 * time.Second)
+			} else {
+				break
+			}
+		}
+		time.Sleep(10 * time.Second)
+	}
+}
+
 func servePort(port string) {
+	fmt.Println("Serving Port ", port)
 	_, err := strconv.ParseUint(port, 10, 16)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Invalid port %q: %s", port, err)
 		return
 	}
 
-	err = http.ListenAndServe(":"+port, nil)
-	if err != nil {
+	portInt, _ := strconv.Atoi(port)
+
+	var listenErr error
+	go func() { listenErr = http.ListenAndServe(":"+port, nil) }()
+
+	if listenErr != nil {
 		fmt.Fprintf(os.Stderr, "Can't listen on port %q: %s", port, err)
+		addPortToNode(portInt, false)
 		return
 	}
 	fmt.Printf("Listening on Port %q\n", port)
+
+	addPortToNode(portInt, true)
+}
+
+func addPortToNode(port int, success bool) {
+	fmt.Println("Adding Port ", port)
+	for _, nodePort := range NodePorts.Ports {
+		if nodePort.Port == port {
+			nodePort.Success = success
+			return
+		}
+	}
+	NodePorts.Ports = append(NodePorts.Ports, NodePort{port, success})
+	fmt.Println("Status: ", port, success)
+	fmt.Println("Node Ports ", NodePorts)
 }
 
 func userInterface(w http.ResponseWriter, r *http.Request) {
@@ -199,6 +266,33 @@ func register(w http.ResponseWriter, r *http.Request) {
 	Nodes = append(Nodes, myNode)
 	fmt.Println("Node Group ", Nodes)
 	fmt.Fprintf(w, "OK")
+}
+
+// take the JSON data from the connection the register the node
+func receiveStatus(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("ReceiveStatus from %s\n", r.Host)
+	var myNode NodePortGroup
+
+	err := json.NewDecoder(r.Body).Decode(&myNode)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println(myNode)
+
+	updateNodeGroup(r.Host, myNode)
+
+	fmt.Fprintf(w, "OK")
+}
+
+func updateNodeGroup(host string, nodePort NodePortGroup) {
+	// for _, nodeGroup := range NodeGroups {
+	// 	if nodeGroup.Hostname == node.Hostname {
+	// 		nodeGroup.addNode(node)
+	// 	}
+	// }
+	fmt.Println("Node Ports ", nodePort)
 }
 
 // func (nodeGroup *NodeGroup) addNode(node Node) {
