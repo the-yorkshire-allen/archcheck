@@ -1,30 +1,3 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-    <meta charset="utf-8">
-    <title>Architecture Check</title>
-    <script type="text/javascript" src="graphs/d3.v7.min.js"></script>
-    <style>
-        .tooltip {
-            position: absolute;
-            text-align: center;
-            width: 60px;
-            height: 28px;
-            padding: 2px;
-            font: 12px sans-serif;
-            background: lightsteelblue;
-            border: 0px;
-            border-radius: 8px;
-            pointer-events: none;
-        }
-    </style>
-</head>
-
-<body>
-    <!-- chart location -->
-    <div id="chart_div"></div>
-    <script type="text/javascript">
 fetch('graphs/server_data.json')
     .then(response => response.json())
     .then(data => {
@@ -69,7 +42,7 @@ fetch('graphs/server_data.json')
             .attr("height", height);
 
         let simulation = d3.forceSimulation(nodes)
-            .force("link", d3.forceLink(links).id(d => d.id).distance(200))
+            .force("link", d3.forceLink(links).id(d => d.id))
             .force("charge", d3.forceManyBody())
             .force("center", d3.forceCenter(width / 2, height / 2));
 
@@ -79,10 +52,9 @@ fetch('graphs/server_data.json')
             .selectAll("line")
             .data(links)
             .enter().append("line")
-            .attr("stroke", d => d.value ? "green" : "red")          
-            // .attr("stroke-width", d => 10)
-            // .attr("stroke-width", d => Math.sqrt(d.value))
-            .attr("stroke-width", d => 1)
+            .attr("stroke", "#999") // Add this line            
+            .attr("stroke-width", d => 10)
+            // .attr("stroke-width", d => Math.sqrt(d.value*100))
             .on("mouseover", function (d) {
                 tooltip.transition()
                     .duration(200)
@@ -110,7 +82,7 @@ fetch('graphs/server_data.json')
             .selectAll("circle")
             .data(nodes)
             .enter().append("circle")
-            .attr("r", 20)
+            .attr("r", 100)
             .attr("fill", d => color(d.group))
             .call(d3.drag()
                 .on("start", dragstarted)
@@ -163,57 +135,3 @@ fetch('graphs/server_data.json')
     })
     .catch(error => console.error('Error:', error));
 
-
-    </script>
-
-
-    <!-- <script type="text/javascript" src="graphs/server_display.js"></script> -->
-
-    <!-- <script type="text/javascript" src="graphs/expandable-graph.js"></script> -->
-    <!-- <script type="text/javascript">
-
-        // set the dimensions and margins of the graph
-        var margin = { top: 10, right: 30, bottom: 30, left: 40 },
-            width = 400 - margin.left - margin.right,
-            height = 400 - margin.top - margin.bottom;
-
-        // append the svg object to the body of the page
-        var svg = d3.select("#chart_div")
-            .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform",
-                "translate(" + margin.left + "," + margin.top + ")");
-
-        console.log("Loading from data/NodeData.json");
-        d3.json("data/NodeData.json").then(function (data) {
-            console.log(data);
-
-            var node = svg
-                .selectAll("circle")
-                .data(data)
-
-            var enterNode = node.enter()
-                .append("g")
-                .attr("transform", function (d) {
-                    return "translate(50,100)"
-                })
-
-            enterNode.append("circle")
-                .attr("r", 80)
-                .attr("stroke", "black")
-                .style("fill", "#69b3a2")
-
-            enterNode.append("text")
-                .attr("font-size", "14px")
-                .attr("text-anchor", "middle")
-                .text(function (d) { return d.hostname })
-
-        });
-
-
-    </script> -->
-</body>
-
-</html>

@@ -218,6 +218,7 @@ func servePort(port string) {
 	var listenErr error
 	go func() { listenErr = http.ListenAndServe(":"+port, nil) }()
 
+	// need to correct for race condition as listenErr is not set yet
 	if listenErr != nil {
 		fmt.Fprintf(os.Stderr, "Can't listen on port %q: %s", port, err)
 		addPortToNode(portInt, false)
