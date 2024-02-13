@@ -25,143 +25,200 @@
     <!-- chart location -->
     <div id="chart_div"></div>
     <script type="text/javascript">
-fetch('graphs/server_data.json')
-    .then(response => response.json())
-    .then(data => {
-        let nodes = [];
-        let links = [];
-        
-        data.forEach((server, index) => {
-            // Create a node for the server
-            nodes.push({
-                id: server.Hostname,
-                group: index,
-                type: 'server'
-            });
-        
-            server.Connections.forEach(connection => {
-                // Create a node for the port
-                let portId = `${server.Hostname}:${connection.Port}`;
-                nodes.push({
-                    id: portId,
-                    group: index,
-                    type: 'port'
+        fetch('graphs/server_data.json')
+            .then(response => response.json())
+            .then(data => {
+                let nodes = [];
+                let links = [];
+
+                data.forEach((server, index) => {
+                    // Create a node for the server
+                    nodes.push({
+                        id: server.Hostname,
+                        group: index,
+                        type: 'server',
+                        label: server.Hostname
+                    });
+
+                    server.Connections.forEach(connection => {
+                        // Create a node for the port
+                        let portId = `${server.Hostname}:${connection.Port}`;
+                        let label = `Port: ${connection.Port}`;
+                        nodes.push({
+                            id: portId,
+                            group: index,
+                            type: 'port',
+                            label: label
+                        });
+
+                        // Create a link from the server to the port
+                        links.push({
+                            source: server.Hostname,
+                            target: portId,
+                            value: connection.Success ? 1 : 0
+                        });
+                    });
                 });
-        
-                // Create a link from the server to the port
-                links.push({
-                    source: server.Hostname,
-                    target: portId,
-                    value: connection.Success ? 1 : 0
-                });
-            });
-        });
 
-        console.log(nodes)
-        console.log(links)
+                let hierarchy = {
+                    children: data.map(server => ({
+                        id: server.Hostname,
+                        children: server.Connections.map(connection => ({
+                            id: `${server.Hostname}:${connection.Port}`
+                        }))
+                    }))
+                };
+                width = 960;
+                height = 700;
 
-        width = 960;
-        height = 600;
+                let pack = d3.pack()
+                    .size([width, height])
+                    .padding(1.5);
 
-        // Create the D3.js force-directed graph
-        let svg = d3.select("body").append("svg")
-            .attr("width", width)
-            .attr("height", height);
+                let root = d3.hierarchy(hierarchy)
+                    .sum(d => d.children ? 0 : 1)
+                    .sort((a, b) => b.value - a.value);
 
-        let simulation = d3.forceSimulation(nodes)
-            .force("link", d3.forceLink(links).id(d => d.id).distance(200))
-            .force("charge", d3.forceManyBody())
-            .force("center", d3.forceCenter(width / 2, height / 2));
+                pack(root);
 
-        // Add the links
-        let link = svg.append("g")
-            .attr("class", "links")
-            .selectAll("line")
-            .data(links)
-            .enter().append("line")
-            .attr("stroke", d => d.value ? "green" : "red")          
-            // .attr("stroke-width", d => 10)
-            // .attr("stroke-width", d => Math.sqrt(d.value))
-            .attr("stroke-width", d => 1)
-            .on("mouseover", function (d) {
-                tooltip.transition()
-                    .duration(200)
-                    .style("opacity", .9);
-                tooltip.html("Source: " + d.source.id + "<br/>" + "Target: " + d.target.id + "<br/>" + "Port: " + d.port + "<br/>" + "Success: " + (d.value ? "Yes" : "No"))
-                    .style("left", (d3.event.pageX) + "px")
-                    .style("top", (d3.event.pageY - 28) + "px");
-            })
-            .on("mouseout", function (d) {
-                tooltip.transition()
-                    .duration(500)
+                // Create the D3.js force-directed graph
+                let svg = d3.select("body").append("svg")
+                    .attr("width", width)
+                    .attr("height", height);
+
+                let simulation = d3.forceSimulation(nodes)
+                    .force("link", d3.forceLink(links).id(d => d.id).distance(150))
+                    .force("charge", d3.forceManyBody())
+                    .force("center", d3.forceCenter(width / 2, height / 2));
+
+                // Add the links
+                let link = svg.append("g")
+                    .attr("class", "links")
+                    .selectAll("line")
+                    .data(links)
+                    .enter().append("line")
+                    .attr("stroke", d => d.value ? "green" : "red")
+                    // .attr("stroke-width", d => 10)
+                    // .attr("stroke-width", d => Math.sqrt(d.value))
+                    .attr("stroke-width", d => 3);
+                // .on("mouseover", function (d) {
+                //     tooltip.transition()
+                //         .duration(200)
+                //         .style("opacity", .9);
+                //     tooltip.html("Source: " + d.source.id + "<br/>" + "Target: " + d.target.id + "<br/>" + "Port: " + d.port + "<br/>" + "Success: " + (d.value ? "Yes" : "No"))
+                //         .style("left", (d3.event.pageX) + "px")
+                //         .style("top", (d3.event.pageY - 28) + "px");
+                // })
+                // .on("mouseout", function (d) {
+                //     tooltip.transition()
+                //         .duration(500)
+                //         .style("opacity", 0);
+                // });
+
+                // Define the tooltip
+                let tooltip = d3.select("body").append("div")
+                    .attr("class", "tooltip")
                     .style("opacity", 0);
-            });
 
-        // Define the tooltip
-        let tooltip = d3.select("body").append("div")
-            .attr("class", "tooltip")
-            .style("opacity", 0);
+                let color = d3.scaleOrdinal(d3.schemeCategory10);
 
-        let color = d3.scaleOrdinal(d3.schemeCategory10);
+                // Add the nodes
+                svg.append("g")
+                    .attr("class", "nodes")
+                    .selectAll("circle")
+                    .data(nodes)
+                    .enter().append("circle")
+                    .attr("r", 20)
+                    .attr("fill", d => color(d.group))
+                    .call(d3.drag()
+                        .on("start", dragstarted)
+                        .on("drag", dragged)
+                        .on("end", dragended));
 
-        // Add the nodes
-        svg.append("g")
-            .attr("class", "nodes")
-            .selectAll("circle")
-            .data(nodes)
-            .enter().append("circle")
-            .attr("r", 20)
-            .attr("fill", d => color(d.group))
-            .call(d3.drag()
-                .on("start", dragstarted)
-                .on("drag", dragged)
-                .on("end", dragended));
+                let maxDistances = [];
 
-        // Add the node labels
-        let labels = svg.append("g")
-            .attr("class", "labels")
-            .selectAll("text")
-            .data(nodes)
-            .enter().append("text")
-            .attr("dx", 12)
-            .attr("dy", ".35em")
-            .text(d => d.id);
+                maxDistances = data.map(server => {
+                    let serverNode = nodes.find(node => node.id === server.Hostname);
+                    let portNodes = nodes.filter(node => node.type === 'port' && node.id.startsWith(server.Hostname));
+                    let maxDistance = d3.max(portNodes, portNode => Math.hypot(portNode.x - serverNode.x, portNode.y - serverNode.y));
+                    return {
+                        id: server.Hostname,
+                        maxDistance: maxDistance
+                    };
+                });
 
-        // Define the drag event functions
-        function dragstarted(event, d) {
-            if (!event.active) simulation.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
-        }
+                let circles = svg.append("g")
+                    .selectAll("circle")
+                    .data(maxDistances)
+                    .enter().append("circle")
+                    .attr("cx", d => nodes.find(node => node.id === d.id).x)
+                    .attr("cy", d => nodes.find(node => node.id === d.id).y)
+                    .attr("r", d => d.maxDistance)
+                    .attr("fill", "none")
+                    .attr("stroke", "black");
 
-        function dragged(event, d) {
-            d.fx = event.x;
-            d.fy = event.y;
-        }
+                // Add the node labels
+                let labels = svg.append("g")
+                    .attr("class", "labels")
+                    .selectAll("text")
+                    .data(nodes)
+                    .enter().append("text")
+                    .attr("dx", 12)
+                    .attr("dy", ".35em")
+                    .text(d => d.label);
 
-        function dragended(event, d) {
-            if (!event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
-        }
+                // Define the drag event functions
+                function dragstarted(event, d) {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
+                }
 
-        simulation.on("tick", () => {
-            svg.selectAll("line")
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y);
+                function dragged(event, d) {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                }
 
-            svg.selectAll("circle")
-                .attr("cx", d => d.x)
-                .attr("cy", d => d.y);
+                function dragended(event, d) {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                }
 
-            labels
-                .attr("x", d => d.x)
-                .attr("y", d => d.y);
-        });
-    })
-    .catch(error => console.error('Error:', error));
+                simulation.on("tick", () => {
+                    maxDistances = data.map(server => {
+                        let serverNode = nodes.find(node => node.id === server.Hostname);
+                        let portNodes = nodes.filter(node => node.type === 'port' && node.id.startsWith(server.Hostname));
+                        let maxDistance = d3.max(portNodes, portNode => Math.hypot(portNode.x - serverNode.x, portNode.y - serverNode.y));
+                        return {
+                            id: server.Hostname,
+                            maxDistance: maxDistance + 30
+                        };
+                    });
+
+                    circles = circles.data(maxDistances, d => d.id); // Update the data
+
+                    svg.selectAll("line")
+                        .attr("x1", d => d.source.x)
+                        .attr("y1", d => d.source.y)
+                        .attr("x2", d => d.target.x)
+                        .attr("y2", d => d.target.y);
+
+                    svg.selectAll("circle")
+                        .attr("cx", d => d.x)
+                        .attr("cy", d => d.y);
+
+                    labels
+                        .attr("x", d => d.x)
+                        .attr("y", d => d.y);
+
+                    circles.attr("cx", d => nodes.find(node => node.id === d.id).x)
+                        .attr("cy", d => nodes.find(node => node.id === d.id).y)
+                        .attr("r", d => d.maxDistance);
+
+                });
+            })
+            .catch(error => console.error('Error:', error));
 
 
     </script>
