@@ -2,7 +2,23 @@
     {
       "Hostname":"Server A",
       "IP": "10.10.2.45",
-      "Ports": [ 443,8080,4433,8142,8140 ],
+      "Ports": [ 
+        { "Port": 443,
+          "Success": true
+        },
+        { "Port": 4433,
+          "Success": true
+        },
+        { "Port": 8080,
+          "Success": true
+        },
+        { "Port": 8140,
+          "Success": true
+        },
+        { "Port": 8142,
+          "Success": true
+        }
+      ],
       "Connections": [
         {
         "ToHostname": "Server B",
@@ -39,7 +55,23 @@
     {
       "Hostname":"Server B",
       "IP": "10.10.2.46",
-      "Ports": [ 443,8080,4433,8142,8140 ],
+      "Ports": [ 
+        { "Port": 443,
+          "Success": false
+        },
+        { "Port": 4433,
+          "Success": false
+        },
+        { "Port": 8080,
+          "Success": true
+        },
+        { "Port": 8140,
+          "Success": false
+        },
+        { "Port": 8142,
+          "Success": false
+        }
+      ],
       "Connections": [
         {
         "ToHostname": "Server A",
@@ -76,7 +108,23 @@
     {
       "Hostname":"Server C",
       "IP": "10.10.2.47",
-      "Ports": [ 443,8080,4433,8142,8140 ],
+      "Ports": [ 
+        { "Port": 443,
+          "Success": true
+        },
+        { "Port": 4433,
+          "Success": true
+        },
+        { "Port": 8080,
+          "Success": true
+        },
+        { "Port": 8140,
+          "Success": false
+        },
+        { "Port": 8142,
+          "Success": false
+        }
+      ],
       "Connections": [
         {
         "ToHostname": "Server A",
